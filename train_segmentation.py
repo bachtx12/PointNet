@@ -1,4 +1,4 @@
-iimport argparse
+import argparse
 import os
 import random
 import torch
@@ -24,7 +24,7 @@ def parse_args():
     '''PARAMETERS'''
     parser = argparse.ArgumentParser('Segmentation')
     parser.add_argument('--batch_size', type=int, default=24, help='batch size in training [default: 24]')
-    parser.add_argument('--nepoch',  default=100, type=int, help='number of epoch in training [default: 100]')
+    parser.add_argument('--nepoch',  default=2, type=int, help='number of epoch in training [default: 100]')
     parser.add_argument('--learning_rate', default=0.001, type=float, help='learning rate in training [default: 0.001]')
     parser.add_argument('--num_point', type=int, default=4096, help='Point Number [default: 4096]')
     parser.add_argument('--optimizer', type=str, default='Adam', help='optimizer for training [default: Adam]')
@@ -62,7 +62,8 @@ def train():
         dataset,
         batch_size=args.batch_size,
         shuffle=True,
-        num_workers=4)
+        num_workers=4,
+        drop_last=True)
 
     test_dataset = S3DISDataset(
         root=args.dataset_path,
@@ -78,7 +79,7 @@ def train():
     print(len(dataset), len(test_dataset))
     num_classes = 13
     print('classes', num_classes)
-    name_folder = '%s_%s_%s_%s_area%s'%( args.model,args.nepoch,args.batch_size,args.num_point,args.test_area)
+    name_folder = '%s_%s_%s_area%s'%(args.nepoch,args.batch_size,args.num_point,args.test_area)
     path_checkpoints = os.path.join(args.log_dir,name_folder,'checkpoints')
     path_logs = os.path.join(args.log_dir,name_folder,'logs')
     path_runs = os.path.join(args.log_dir,name_folder,'runs')
@@ -165,18 +166,15 @@ def train():
         total_seen_class = [0 for _ in range(num_classes)]
         total_correct_class = [0 for _ in range(num_classes)]
         total_iou_deno_class = [0 for _ in range(num_classes)]
+        classifier = classifier.eval()
         for i,data in tqdm(enumerate(testdataloader, 0)):
             points, target = data
             BATCH_SIZE = points.size()[0]
-            points = points.transpose(2, 1)
             points, target = points.cuda(), target.cuda()
-            classifier = classifier.eval()
-            if args.model=='pointnet':
-                seg_pred, _, _ = classifier(points)
-                pred_choice = seg_pred.data.max(2)[1]
-            elif args.model=='dgcnn':
-                seg_pred = classifier(points)
-                pred_choice = seg_pred.data.max(1)[1]
+
+            seg_pred, _, _ = classifier(points)
+            pred_choice = seg_pred.data.max(2)[1]
+            
             pred_val = pred_choice.cpu().data.numpy()
             batch_label = target.cpu().data.numpy()
             correct = np.sum((pred_val == batch_label))
