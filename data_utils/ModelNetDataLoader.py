@@ -67,6 +67,7 @@ class ModelNetDataset(data.Dataset):
                 self.cats[line[0]] = int(line[1])
         self.paths = []
         self.classes = dict(zip(sorted(self.cats), range(len(self.cats))))
+        self.num_classes = len(self.cats)
         for cat in self.cats:
             self.paths +=glob.glob('%s/%s/%s/*'%(self.root,cat,self.split))
 

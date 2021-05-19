@@ -1,0 +1,15 @@
+{
+  "batch_size": 32,
+  "nepoch": 250,
+  "learning_rate": 0.001,
+  "num_point": 1024,
+  "optimizer": "Adam",
+  "log_dir": "results_cls",
+  "model_path": "",
+  "dataset_path": "../ModelNet40_blender_sampling_1024",
+  "dataset_type": "modelnet40",
+  "lr_decay": 0.7,
+  "decay_step": 20,
+  "momentum_decay": 0.5,
+  "manualSeed": 1672
+}
