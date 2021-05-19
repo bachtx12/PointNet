@@ -76,6 +76,81 @@ class STN3D3k(nn.Module):
         return x
 
 
+class STN3D_cv2d(nn.Module):
+    def __init__(self, input_channels=3):
+        super(STN3D_cv2d, self).__init__()
+        self.input_channels = input_channels
+        self.mlp1 = nn.Sequential(
+            nn.Conv2d(1, 64, (1,3)),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, (1,1)),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Conv2d(128, 1024, (1,1)),
+            nn.BatchNorm2d(1024),
+            nn.ReLU()
+        )
+        self.mlp2 = nn.Sequential(
+            nn.Linear(1024, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
+            nn.Linear(256, input_channels * input_channels)
+        )
+
+    def forward(self, x):
+        batch_size = x.shape[0]
+        num_points = x.shape[1]
+        x = x.unsqueeze(1)
+        x = self.mlp1(x)
+        x = F.max_pool2d(x, (num_points, 1)).squeeze()
+        x= x.view(batch_size, -1)
+        x = self.mlp2(x)
+
+        I = torch.eye(self.input_channels).view(-1).to(x.device)
+        x = x + I
+        x = x.view(-1, self.input_channels, self.input_channels)
+        return x
+class STN3D_cv2d_k(nn.Module):
+    def __init__(self, input_channels=3):
+        super(STN3D_cv2d_k, self).__init__()
+        self.input_channels = input_channels
+        self.mlp1 = nn.Sequential(
+            nn.Conv2d(64, 64, (1,1)),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, (1,1)),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Conv2d(128, 1024, (1,1)),
+            nn.BatchNorm2d(1024),
+            nn.ReLU()
+        )
+        self.mlp2 = nn.Sequential(
+            nn.Linear(1024, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
+            nn.Linear(256, input_channels * input_channels)
+        )
+
+    def forward(self, x):
+        batch_size = x.shape[0]
+        num_points = x.shape[2]
+        x = self.mlp1(x)
+        x = F.max_pool2d(x, (num_points, 1)).squeeze()
+        x= x.view(batch_size, -1)
+        x = self.mlp2(x)
+
+        I = torch.eye(self.input_channels).view(-1).to(x.device)
+        x = x + I
+        x = x.view(-1, self.input_channels, self.input_channels)
+        return x
 def feature_transform_regularizer(trans):
     d = trans.size()[1]
     batchsize = trans.size()[0]
@@ -85,9 +160,10 @@ def feature_transform_regularizer(trans):
     loss = torch.sum(torch.norm(torch.bmm(trans, trans.transpose(2,1)) - I, dim=(1,2))**2)/2
     return loss
 if __name__=='__main__':
-    stn = STN3D(3)
-    x = torch.rand(12,3,1024)
-    stn(x)
-    cv1 = nn.Conv1d(3,64,1)
-    print(cv1.bias.data.size())
-    print(cv1(x).size())
+    stn = STN3D_cv2d(3)
+    x = torch.rand(12,1024, 3)
+    # cv1 = nn.Conv2d(1,64,(1,3))
+    print((stn(x)).size())
+    # print(cv1.bias.data.size())
+    # print(cv1.weight.data.size())
+    # print(cv1(x).size())

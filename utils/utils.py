@@ -22,17 +22,17 @@ def copy_parameters(model, pretrained, verbose=True):
 def bn_momentum_adjust(m, momentum):
     if isinstance(m, torch.nn.BatchNorm2d) or isinstance(m, torch.nn.BatchNorm1d):
         m.momentum = momentum
+        m.eps =1e-3
         # print(m)
 def init_weights(m):
-    if isinstance(m, nn.Conv1d) or isinstance(m, nn.Linear):
+    if isinstance(m, nn.Conv1d) or isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
         torch.nn.init.xavier_uniform_(m.weight)
-        # torch.nn.init.xavier_normal_(m.weight)
         torch.nn.init.zeros_(m.bias)
         # print(m)
 def init_zeros(m):
     if isinstance(m, nn.Linear):
-        torch.nn.init.constant_(m.weight, 1e-8)
-        torch.nn.init.constant_(m.bias, 1e-8)
+        torch.nn.init.constant_(m.weight, 1e-5)
+        torch.nn.init.zeros_(m.bias)
     else:
         print('Wrong layer TNet')
         exit()

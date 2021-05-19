@@ -14,7 +14,7 @@ sys.path.append(os.path.join(BASE_DIR, 'data_utils'))
 from data_utils import rotate_point_cloud_by_angle
 from ModelNetDataLoader import ModelNetDataset, ModelNetDataset_H5PY
 from ScanObjectNNDataLoader import ScanObjectNNDataset
-from utils import copy_parameters
+from utils import copy_parameters, bn_momentum_adjust
 from pointnet_cls import PointNet, get_loss
 import torch.nn.functional as F
 from tqdm import tqdm
@@ -22,7 +22,7 @@ import json
 def parse_args():
     '''PARAMETERS'''
     parser = argparse.ArgumentParser('Classification')
-    parser.add_argument('--batch_size', type=int, default=32, help='batch size in training [default: 32]')
+    parser.add_argument('--batch_size', type=int, default=1, help='batch size in training [default: 32]')
     parser.add_argument('--num_point', type=int, default=1024, help='Point Number [default: 1024]')
     parser.add_argument('--log_dir', type=str, default=None, help='experiment root')
     parser.add_argument('--model_path', type=str, required=True, help='model pre-trained')
@@ -72,7 +72,9 @@ def test():
 
     classifier = PointNet(3, num_classes)
     
-    classifier = copy_parameters(classifier,torch.load(args.model_path))
+    # classifier = copy_parameters(classifier,torch.load(args.model_path))
+    classifier.load_state_dict(torch.load(args.model_path))
+    classifier = classifier.apply(lambda x: bn_momentum_adjust(x, 0.5))
 
     ## Test 
     results = {}
@@ -80,6 +82,7 @@ def test():
     total_point = 0.0
     total_correct = 0.0
     classifier = classifier.eval()
+    print(classifier)
     classifier.cuda()
     for i, data in tqdm(enumerate(testdataloader, 0)):
         points, target = data
@@ -88,10 +91,10 @@ def test():
         vote_pred = torch.zeros(points.size()[0], num_classes).cuda()
         # points = points.transpose(2, 1)
         for vid in range(args.num_vote):
-            rotated_data = rotate_point_cloud_by_angle(points.cpu().numpy(), vid/float(args.num_vote) * np.pi * 2)
-            points_cuda = torch.from_numpy(rotated_data).cuda()
+            # rotated_data = rotate_point_cloud_by_angle(points.cpu().numpy(), vid/float(args.num_vote) * np.pi * 2)
+            # points_cuda = torch.from_numpy(rotated_data).cuda()
             # print(torch.cuda.memory_allocated())
-            # points_cuda = points.cuda()
+            points_cuda = points.cuda()
             # del points_cuda
             pred, trans, trans_feat = classifier(points_cuda)
             vote_pred+=pred
@@ -103,5 +106,6 @@ def test():
     results['Instance acc'] = total_correct/total_point
     with open('%s/test_results.txt'%args.log_dir, 'w') as f:
         json.dump(results, f)
+    print(results)
 if __name__=='__main__':
     test()

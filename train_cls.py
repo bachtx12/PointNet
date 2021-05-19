@@ -15,7 +15,7 @@ sys.path.append(os.path.join(BASE_DIR, 'data_utils'))
 from ModelNetDataLoader import ModelNetDataset, ModelNetDataset_H5PY
 from ScanObjectNNDataLoader import ScanObjectNNDataset
 from utils import copy_parameters, bn_momentum_adjust, init_weights, init_zeros
-from pointnet_cls import PointNet, get_loss
+from pointnet_cls import PointNet, get_loss, PointNet_cv2d
 import torch.nn.functional as F
 from tqdm import tqdm
 import json
@@ -52,9 +52,21 @@ def train():
         torch.manual_seed(args.manualSeed)
 
     if args.dataset_type == 'modelnet40':
-        dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/train.txt', num_point=args.num_point, data_augmentation=True)
+        # dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/train.txt', num_point=args.num_point, data_augmentation=True)
 
-        test_dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/test.txt', num_point=args.num_point, data_augmentation=False)
+        # test_dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/test.txt', num_point=args.num_point, data_augmentation=False)
+        dataset = ModelNetDataset(
+            root=args.dataset_path,
+            npoints=args.num_point,
+            split='train',
+            data_augmentation=True        
+            )
+        test_dataset = ModelNetDataset(
+            root=args.dataset_path,
+            npoints=args.num_point,
+            split='test',
+            data_augmentation=False        
+            )
     elif args.dataset_type == 'scanobjectnn':
         dataset = ScanObjectNNDataset(
             root=args.dataset_path,
@@ -115,6 +127,7 @@ def train():
 
     writer = SummaryWriter(path_runs)
 
+    # classifier = PointNet_cv2d(3, num_classes)
     classifier = PointNet(3, num_classes)
     # classifier.apply(lambda x: init_weights(x))
     classifier.apply(init_weights)
@@ -147,13 +160,12 @@ def train():
         momentum = MOMENTUM_ORIGINAL * (MOMENTUM_DECAY ** (epoch // MOMENTUM_DECAY_STEP))
         if momentum < 0.01:
             momentum = 0.01
-        print('BN momentum updated to: %f learning rate: %f' % (1-momentum, lr))
+        print('BN momentum updated to: %f learning rate: %f' % (momentum, lr))
         classifier = classifier.apply(lambda x: bn_momentum_adjust(x, momentum))
         
         writer.add_scalar('Learning rate',lr, epoch)
         classifier.train()
-        # print(classifier.stn1.mlp2[-1].weight.data)
-        # print(classifier.stn2.mlp2[-1].weight.data)
+
         for points, target in tqdm(dataloader, total=len(dataloader), smoothing=0.9):
             total_point+=points.size(0)
             target = target[:, 0]
@@ -194,7 +206,6 @@ def train():
             if test_acc>best_acc:
                 best_acc = test_acc
                 best_epoch = epoch
-        # scheduler.step()
         print('[%d] train loss: %f accuracy: %f test_acc: %f best acc: %f best epoch: %d' % (epoch, total_loss,total_correct/total_point,test_acc,best_acc, best_epoch))
         writer.add_scalar('Loss/train',total_loss, epoch+1)
         writer.add_scalar('Acc/train',total_correct/total_point, epoch+1)
@@ -210,7 +221,6 @@ def train():
             points, target = data
             total_point+=points.size(0)
             target = target[:, 0]
-            # points = points.transpose(2, 1)
             points, target = points.cuda(), target.cuda()
             
             pred, trans, trans_feat = classifier(points)
