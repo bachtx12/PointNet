@@ -137,6 +137,7 @@ def train():
         classifier = copy_parameters(classifier,torch.load(args.model_path))
     classifier.cuda()
     optimizer = optim.Adam(classifier.parameters(), lr=args.learning_rate, betas=(0.9, 0.999))
+    # optimizer = optim.SGD(classifier.parameters(), lr=args.learning_rate, momentum=0.9)
 
     MOMENTUM_ORIGINAL = 0.5
     MOMENTUM_DECAY = args.momentum_decay
@@ -175,8 +176,8 @@ def train():
 
             pred, trans, trans_feat = classifier(points)
             loss = get_loss(pred, target, trans_feat)
+            
             total_loss +=loss.item() 
-
             loss.backward()
             optimizer.step()
 
@@ -206,7 +207,7 @@ def train():
             if test_acc>best_acc:
                 best_acc = test_acc
                 best_epoch = epoch
-        print('[%d] train loss: %f accuracy: %f test_acc: %f best acc: %f best epoch: %d' % (epoch, total_loss,total_correct/total_point,test_acc,best_acc, best_epoch))
+        print('[%d] train loss: %f accuracy: %f test_acc: %f best acc: %f best epoch: %d' % (epoch, total_loss/total_point,total_correct/total_point,test_acc,best_acc, best_epoch))
         writer.add_scalar('Loss/train',total_loss, epoch+1)
         writer.add_scalar('Acc/train',total_correct/total_point, epoch+1)
     torch.save(classifier.state_dict(), '%s/cls_model.pth' % (path_checkpoints))

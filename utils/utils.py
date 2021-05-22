@@ -31,8 +31,8 @@ def init_weights(m):
         # print(m)
 def init_zeros(m):
     if isinstance(m, nn.Linear):
-        torch.nn.init.constant_(m.weight, 1e-5)
-        torch.nn.init.zeros_(m.bias)
+        torch.nn.init.constant_(m.bias, 1e-10)
+        torch.nn.init.zeros_(m.weight)
     else:
         print('Wrong layer TNet')
         exit()

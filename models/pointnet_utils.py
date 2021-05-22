@@ -146,7 +146,6 @@ class STN3D_cv2d_k(nn.Module):
         x = F.max_pool2d(x, (num_points, 1)).squeeze()
         x= x.view(batch_size, -1)
         x = self.mlp2(x)
-
         I = torch.eye(self.input_channels).view(-1).to(x.device)
         x = x + I
         x = x.view(-1, self.input_channels, self.input_channels)

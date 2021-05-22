@@ -42,7 +42,7 @@ class ModelNetDataset_H5PY(data.Dataset):
     def __getitem__(self, index):
         point_set = np.copy(self.points_list[index][:, 0:3])
         point_label = self.labels_list[index].astype(np.int32)
-        # point_set = normalize_point_cloud(point_set)
+        
         if self.data_augmentation:
             point_set = rotate_point_cloud(point_set)
             point_set = jitter_point_cloud(point_set)
@@ -74,12 +74,12 @@ class ModelNetDataset(data.Dataset):
     def __getitem__(self, index):
         fn = self.paths[index]
         cls = self.cats[fn.split('/')[-3]]
-        data = np.loadtxt(fn)
-        point_set = data[0:self.npoints, :]
+        point_set = np.loadtxt(fn)[:,[0,2,1]]
 
         point_set = center_point_cloud(point_set)
         point_set = normalize_point_cloud(point_set)
 
+        point_set = point_set[0:self.npoints, :]
         if self.data_augmentation:
             point_set = rotate_point_cloud(point_set)
             point_set = jitter_point_cloud(point_set)
