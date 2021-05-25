@@ -24,7 +24,7 @@ def parse_args():
     '''PARAMETERS'''
     parser = argparse.ArgumentParser('Segmentation')
     parser.add_argument('--batch_size', type=int, default=24, help='batch size in training [default: 24]')
-    parser.add_argument('--nepoch',  default=2, type=int, help='number of epoch in training [default: 100]')
+    parser.add_argument('--nepoch',  default=100, type=int, help='number of epoch in training [default: 100]')
     parser.add_argument('--learning_rate', default=0.001, type=float, help='learning rate in training [default: 0.001]')
     parser.add_argument('--num_point', type=int, default=4096, help='Point Number [default: 4096]')
     parser.add_argument('--optimizer', type=str, default='Adam', help='optimizer for training [default: Adam]')
@@ -47,11 +47,13 @@ def train():
     if args.manualSeed != None:
         random.seed(args.manualSeed)
         torch.manual_seed(args.manualSeed)
+        np.random.seed(args.manualSeed)
     else:
         args.manualSeed = random.randint(1, 10000)  # fix seed
         print("Random Seed: ", args.manualSeed)
         random.seed(args.manualSeed)
         torch.manual_seed(args.manualSeed)
+        np.random.seed(args.manualSeed)
 
     dataset = S3DISDataset(
         root=args.dataset_path,
@@ -62,7 +64,7 @@ def train():
         dataset,
         batch_size=args.batch_size,
         shuffle=True,
-        num_workers=4,
+        num_workers=8,
         drop_last=True)
 
     test_dataset = S3DISDataset(
@@ -74,7 +76,7 @@ def train():
         test_dataset,
         batch_size=args.batch_size,
         shuffle=True,
-        num_workers=4)
+        num_workers=8)
 
     print(len(dataset), len(test_dataset))
     num_classes = 13
@@ -110,7 +112,7 @@ def train():
     LR_DECAY = args.lr_decay
     LR_DECAY_STEP = args.decay_step
 
-    optimizer = optim.Adam(classifier.parameters(), lr=args.learning_rate, betas=(0.9, 0.999))
+    optimizer = optim.Adam(classifier.parameters(), lr=args.learning_rate, betas=(0.9, 0.999), weight_decay=1e-4)
 
     classifier.cuda()
     classifier.train()

@@ -22,8 +22,13 @@ def copy_parameters(model, pretrained, verbose=True):
 def bn_momentum_adjust(m, momentum):
     if isinstance(m, torch.nn.BatchNorm2d) or isinstance(m, torch.nn.BatchNorm1d):
         m.momentum = momentum
-        m.eps =1e-3
+        # m.eps =1e-3
         # print(m)
+def to_one_hot(y, num_class):
+    new_y = torch.eye(num_class)[y.cpu().data.numpy(), ]
+    if y.is_cuda:
+        return new_y.cuda()
+    return new_y
 def init_weights(m):
     if isinstance(m, nn.Conv1d) or isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
         torch.nn.init.xavier_uniform_(m.weight)
@@ -31,9 +36,12 @@ def init_weights(m):
         # print(m)
 def init_zeros(m):
     if isinstance(m, nn.Linear):
-        torch.nn.init.constant_(m.bias, 1e-10)
+        # torch.nn.init.constant_(m.bias, 1e-10)
+        torch.nn.init.uniform_(m.bias)
         torch.nn.init.zeros_(m.weight)
     else:
         print('Wrong layer TNet')
         exit()
         # print(m)
+if __name__ =='__main__':
+    print(to_one_hot(torch.ones(10), 5))

@@ -5,6 +5,7 @@ import torch
 import torch.optim as optim
 import torch.utils.data
 import sys
+import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
@@ -15,7 +16,7 @@ sys.path.append(os.path.join(BASE_DIR, 'data_utils'))
 from ModelNetDataLoader import ModelNetDataset, ModelNetDataset_H5PY
 from ScanObjectNNDataLoader import ScanObjectNNDataset
 from utils import copy_parameters, bn_momentum_adjust, init_weights, init_zeros
-from pointnet_cls import PointNet, get_loss, PointNet_cv2d
+from pointnet_cls import PointNet, get_loss
 import torch.nn.functional as F
 from tqdm import tqdm
 import json
@@ -45,16 +46,15 @@ def train():
     if args.manualSeed != None:
         random.seed(args.manualSeed)
         torch.manual_seed(args.manualSeed)
+        np.random.seed(args.manualSeed)
     else:
         args.manualSeed = random.randint(1, 10000)  # fix seed
         print("Random Seed: ", args.manualSeed)
         random.seed(args.manualSeed)
         torch.manual_seed(args.manualSeed)
+        np.random.seed(args.manualSeed)
 
     if args.dataset_type == 'modelnet40':
-        # dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/train.txt', num_point=args.num_point, data_augmentation=True)
-
-        # test_dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/test.txt', num_point=args.num_point, data_augmentation=False)
         dataset = ModelNetDataset(
             root=args.dataset_path,
             npoints=args.num_point,
@@ -67,6 +67,10 @@ def train():
             split='test',
             data_augmentation=False        
             )
+    elif args.dataset_type == 'modelnet40h5py':
+        dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/train.txt', num_point=args.num_point, data_augmentation=True)
+
+        test_dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/test.txt', num_point=args.num_point, data_augmentation=False)
     elif args.dataset_type == 'scanobjectnn':
         dataset = ScanObjectNNDataset(
             root=args.dataset_path,
@@ -96,14 +100,14 @@ def train():
         dataset,
         batch_size=args.batch_size,
         shuffle=True,
-        num_workers=4,
+        num_workers=8,
         drop_last=True)
 
     testdataloader = torch.utils.data.DataLoader(
             test_dataset,
             batch_size=args.batch_size,
             shuffle=True,
-            num_workers=4)
+            num_workers=8)
 
     print(len(dataset), len(test_dataset))
     # num_classes = len(dataset.classes)
@@ -127,9 +131,7 @@ def train():
 
     writer = SummaryWriter(path_runs)
 
-    # classifier = PointNet_cv2d(3, num_classes)
     classifier = PointNet(3, num_classes)
-    # classifier.apply(lambda x: init_weights(x))
     classifier.apply(init_weights)
     classifier.stn1.mlp2[-1].apply(init_zeros)
     classifier.stn2.mlp2[-1].apply(init_zeros)
@@ -137,7 +139,6 @@ def train():
         classifier = copy_parameters(classifier,torch.load(args.model_path))
     classifier.cuda()
     optimizer = optim.Adam(classifier.parameters(), lr=args.learning_rate, betas=(0.9, 0.999))
-    # optimizer = optim.SGD(classifier.parameters(), lr=args.learning_rate, momentum=0.9)
 
     MOMENTUM_ORIGINAL = 0.5
     MOMENTUM_DECAY = args.momentum_decay

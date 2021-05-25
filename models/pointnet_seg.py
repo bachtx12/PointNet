@@ -6,14 +6,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, 'models'))
 sys.path.append(os.path.join(BASE_DIR, 'utils'))
-from pointnet_utils import feature_transform_regularizer, STN3D, STN3D3k
+from pointnet_utils import feature_transform_regularizer, STN3D_input, STN3D_feature
 
 class PointNet(nn.Module):
     def __init__(self, input_channels, num_classes):
         super(PointNet, self).__init__()
         self.input_channels = input_channels
-        self.stn1 = STN3D3k(input_channels)
-        self.stn2 = STN3D(64)
+        self.stn1 = STN3D_input(input_channels)
+        self.stn2 = STN3D_feature(64)
         self.num_classes = num_classes
         self.mlp1 = nn.Sequential(
             nn.Conv1d(input_channels, 64, 1),
