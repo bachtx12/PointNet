@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument('--learning_rate', default=0.001, type=float, help='learning rate in training [default: 0.001]')
     parser.add_argument('--num_point', type=int, default=4096, help='Point Number [default: 4096]')
     parser.add_argument('--optimizer', type=str, default='Adam', help='optimizer for training [default: Adam]')
-    parser.add_argument('--log_dir', type=str, default=None, help='experiment root')
+    parser.add_argument('--log_dir', type=str, default='results_sem_seg', help='experiment root')
 
     parser.add_argument('--model_path', type=str, default='', help='model pre-trained')
     parser.add_argument('--dataset_path', type=str, required=True, help='dataset path')

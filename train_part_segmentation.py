@@ -52,7 +52,7 @@ def train():
         torch.manual_seed(args.manualSeed)
         np.random.seed(args.manualSeed)
 
-    dataset = ShapeNetPartSegDataset(root = args.dataset_path, num_points= args.num_point, split='test')
+    dataset = ShapeNetPartSegDataset(root = args.dataset_path, num_points= args.num_point, split='trainval')
     seg_classes = dataset.seg_classes
     dataloader = torch.utils.data.DataLoader(
         dataset,
