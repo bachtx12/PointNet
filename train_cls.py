@@ -167,7 +167,6 @@ def train():
         
         writer.add_scalar('Learning rate',lr, epoch)
         classifier.train()
-
         for points, target in tqdm(dataloader, total=len(dataloader), smoothing=0.9):
             total_point+=points.size(0)
             target = target[:, 0]

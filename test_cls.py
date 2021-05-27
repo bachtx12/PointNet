@@ -91,10 +91,10 @@ def test():
         vote_pred = torch.zeros(points.size()[0], num_classes).cuda()
         # points = points.transpose(2, 1)
         for vid in range(args.num_vote):
-            # rotated_data = rotate_point_cloud_by_angle(points.cpu().numpy(), vid/float(args.num_vote) * np.pi * 2)
-            # points_cuda = torch.from_numpy(rotated_data).cuda()
+            rotated_data = rotate_point_cloud_by_angle(points.cpu().numpy(), vid/float(args.num_vote) * np.pi * 2)
+            points_cuda = torch.from_numpy(rotated_data).cuda()
             # print(torch.cuda.memory_allocated())
-            points_cuda = points.cuda()
+            # points_cuda = points.cuda()
             # del points_cuda
             pred, trans, trans_feat = classifier(points_cuda)
             vote_pred+=pred
