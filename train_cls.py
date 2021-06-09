@@ -36,7 +36,7 @@ def parse_args():
     parser.add_argument('--decay_step', type=int, default=20, help='decay step for ')
     parser.add_argument('--momentum_decay', type=float, default=0.5, help='momentum_decay decay of batchnorm')
     parser.add_argument('--manualSeed', type=int, default=None, help='random seed')
-
+    parser.add_argument('--data_aug', type=bool, default=True, metavar='N', help='Using data augmentation for training phase')
     #parameter of pointnet
     return parser.parse_args()
 
@@ -59,7 +59,7 @@ def train():
             root=args.dataset_path,
             npoints=args.num_point,
             split='train',
-            data_augmentation=True        
+            data_augmentation=args.data_aug        
             )
         test_dataset = ModelNetDataset(
             root=args.dataset_path,
@@ -68,14 +68,27 @@ def train():
             data_augmentation=False        
             )
     elif args.dataset_type == 'modelnet40h5py':
-        dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/train.txt', num_point=args.num_point, data_augmentation=True)
+        dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/train.txt', num_point=args.num_point,data_augmentation=args.data_aug)
 
         test_dataset = ModelNetDataset_H5PY(filelist=args.dataset_path+'/test.txt', num_point=args.num_point, data_augmentation=False)
     elif args.dataset_type == 'scanobjectnn':
         dataset = ScanObjectNNDataset(
             root=args.dataset_path,
             npoints=args.num_point,
-            split='train')
+            split='train',
+            data_augmentation=args.data_aug)
+
+        test_dataset = ScanObjectNNDataset(
+            root=args.dataset_path,
+            split='test',
+            npoints=args.num_point,
+            data_augmentation=False)
+    elif args.dataset_type == 'scanobjectnnbg':
+        dataset = ScanObjectNNDataset(
+            root=args.dataset_path,
+            npoints=args.num_point,
+            split='train',
+            data_augmentation=args.data_aug)
 
         test_dataset = ScanObjectNNDataset(
             root=args.dataset_path,
@@ -87,7 +100,8 @@ def train():
             root=args.dataset_path,
             npoints=args.num_point,
             small_data=True,
-            split='train')
+            split='train',
+            data_augmentation=args.data_aug)
 
         test_dataset = ScanObjectNNDataset(
             root=args.dataset_path,
