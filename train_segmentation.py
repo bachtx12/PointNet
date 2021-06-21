@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument('--test_area', type=int, default=6, help='Area using for test')
 
     #parameter of pointnet
-    parser.add_argument('--lr_decay', type=int, default=0.5, help='learning rate decay')
+    parser.add_argument('--lr_decay', type=float, default=0.5, help='learning rate decay')
     parser.add_argument('--momentum_decay', type=float, default=0.5, help='momentum_decay decay of batchnorm')
     parser.add_argument('--decay_step', type=int,  default=20, help='Decay step for lr decay ')
     parser.add_argument('--manualSeed', type=int, default=None, help='random seed')
@@ -130,7 +130,7 @@ def train():
         momentum = MOMENTUM_ORIGINAL * (MOMENTUM_DECAY ** (epoch // MOMENTUM_DECAY_STEP))
         if momentum < 0.01:
             momentum = 0.01
-        print('BN momentum updated to: %f learning rate: %f' % (1-momentum, lr))
+        print('BN momentum updated to: %f learning rate: %f' % (momentum, lr))
         classifier = classifier.apply(lambda x: bn_momentum_adjust(x, momentum))
         
         writer.add_scalar('Learning rate',lr, epoch)

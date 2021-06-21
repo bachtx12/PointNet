@@ -14,6 +14,11 @@ def copy_parameters(model, pretrained, verbose=True, part_seg=False):
     #load pre_trained self-supervised
     pretrained_dict = pretrained
     print(feat_dict.keys())
+    try:
+        pretrained_dict = pretrained_dict['model_state_dict']
+        pretrained_dict = {k[12:]: v for k, v in pretrained_dict.items()} # remove name module. 
+    except:
+        print('Not OcCo pretrained')
     print(pretrained_dict.keys())
     predict = {}
     if part_seg:
@@ -62,7 +67,10 @@ def to_one_hot(y, num_class):
 def init_weights(m):
     if isinstance(m, nn.Conv1d) or isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
         torch.nn.init.xavier_uniform_(m.weight)
-        torch.nn.init.zeros_(m.bias)
+        try:
+            torch.nn.init.zeros_(m.bias)
+        except:
+            pass
         # print(m)
 def init_zeros(m):
     if isinstance(m, nn.Linear):
