@@ -13,12 +13,12 @@ class PointNet(nn.Module):
     def __init__(self, input_channels, num_classes, global_feature=False, feature_transform=True):
         super(PointNet, self).__init__()
         self.input_channels = input_channels
+        self.feature_transform = feature_transform
         self.stn1 = STN3D_input(input_channels)
         if self.feature_transform:
             self.stn2 = STN3D_feature(64)
         self.num_classes = num_classes
         self.global_feature = global_feature
-        self.feature_transform = feature_transform
         self.mlp1 = nn.Sequential(
             nn.Conv1d(input_channels, 64, 1),
             nn.BatchNorm1d(64),
