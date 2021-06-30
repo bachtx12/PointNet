@@ -94,7 +94,7 @@ def write_ply(points, filename, text=True):
 # ----------------------------------------
 
 def draw_point_cloud(input_points, canvasSize=500, space=200, diameter=25,
-                     xrot=0, yrot=0, zrot=0, switch_xyz=[0,1,2], normalize=True):
+                      zrot=110/180.0*np.pi, xrot=45/180.0*np.pi, yrot=0/180.0*np.pi, switch_xyz=[0,1,2], normalize=True):
     """ Render point cloud to image with alpha channel.
         Input:
             points: Nx3 numpy array (+y is up direction)
