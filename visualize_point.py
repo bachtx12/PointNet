@@ -91,8 +91,8 @@ def test():
         classifier = classifier.eval()
         classifier.cuda()
         for i, data in tqdm(enumerate(testdataloader, 0)):
-            # if i==0:
-            #     continue
+            if i==0:
+                continue
             points, target = data
             target = target[:, 0].cuda()
             # points = points.transpose(2, 1)
@@ -112,12 +112,12 @@ def test():
             # print(len(critical_index), len(critical_points))
             print('global feat: ', global_feature)
             img_filename = '%s/critical_points.jpg'%(args.log_dir) 
-            output_img = point_cloud_three_views(np.squeeze( critical_points ))
-            # output_img = draw_point_cloud(np.squeeze( critical_points ), switch_xyz=[0,2,1])
+            # output_img = point_cloud_three_views(np.squeeze( critical_points ))
+            output_img = draw_point_cloud(np.squeeze( critical_points ))
             imageio.imwrite(img_filename, output_img)
             print('original: ', orgin_data)
             img_filename = '%s/original.jpg'%(args.log_dir)
-            output_img = point_cloud_three_views(np.squeeze( orgin_data ))
+            output_img = draw_point_cloud(np.squeeze( orgin_data ))
             imageio.imwrite(img_filename, output_img)
 
             max_position = [-1,-1,-1]
@@ -150,7 +150,7 @@ def test():
             upper = np.array(upper)
             print('Upper: ',upper)
             img_filename = '%s/upper_bound.jpg'%(args.log_dir)
-            output_img = point_cloud_three_views(np.squeeze( np.asarray(upper) ))
+            output_img = draw_point_cloud(np.squeeze( np.asarray(upper) ))
             imageio.imwrite(img_filename, output_img)
             break
 if __name__=='__main__':
