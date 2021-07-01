@@ -237,6 +237,7 @@ def train():
         print('[%d] train loss: %f accuracy: %f test_acc: %f best acc: %f best epoch: %d' % (epoch, total_loss/total_point,total_correct/total_point,test_acc,best_acc, best_epoch))
         writer.add_scalar('Loss/train',total_loss, epoch+1)
         writer.add_scalar('Acc/train',total_correct/total_point, epoch+1)
+        writer.add_scalar('Acc/test',test_acc, epoch+1)
     torch.save(classifier.state_dict(), '%s/cls_model.pth' % (path_checkpoints))
     ## Test 
     with torch.no_grad():
