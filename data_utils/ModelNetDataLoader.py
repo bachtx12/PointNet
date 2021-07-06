@@ -61,6 +61,7 @@ class ModelNetDataset(data.Dataset):
                  npoints=1024,
                  split='train',
                  test_class='all',
+                 tsne=None,
                  data_augmentation=True):
         self.npoints = npoints
         self.root = root
@@ -68,11 +69,20 @@ class ModelNetDataset(data.Dataset):
         self.data_augmentation = data_augmentation
         self.cats = {}
         self.test_class = test_class
-        idx = 0
+        self.tsne = tsne
         with open(os.path.join(self.root,'modelnet_id.txt')) as f:
-            for line in f:
-                line = line.split('\t')
-                self.cats[line[0]] = int(line[1])
+            if self.tsne != None:
+                self.id_cat = {}
+                for line in f:
+                    line = line.split('\t')
+                    idx = int(line[1])
+                    if idx in self.tsne:
+                        self.cats[line[0]] = idx
+                        self.id_cat[idx] = line[0]
+            else:
+                for line in f:
+                    line = line.split('\t')
+                    self.cats[line[0]] = int(line[1])
         self.paths = []
         self.classes = dict(zip(sorted(self.cats), range(len(self.cats))))
         self.num_classes = len(self.cats)

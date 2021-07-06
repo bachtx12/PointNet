@@ -13,13 +13,13 @@ def copy_parameters(model, pretrained, verbose=True, part_seg=False):
     feat_dict = model.state_dict()
     #load pre_trained self-supervised
     pretrained_dict = pretrained
-    print(feat_dict.keys())
+    # print(feat_dict.keys())
     try:
         pretrained_dict = pretrained_dict['model_state_dict']
         pretrained_dict = {k[12:]: v for k, v in pretrained_dict.items()} # remove name module. 
     except:
         print('Not OcCo pretrained')
-    print(pretrained_dict.keys())
+    # print(pretrained_dict.keys())
     predict = {}
     if part_seg:
         for k, v in pretrained_dict.items():

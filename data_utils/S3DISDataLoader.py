@@ -20,6 +20,7 @@ class S3DISDataset(data.Dataset):
         self.label_batches_list = []
 
         for file_name in self.all_file_list:
+            print(file_name)
             f = h5py.File(file_name, 'r')
             self.data_batches_list.append(f['data'][:])
             self.label_batches_list.append(f['label'][:])
@@ -29,6 +30,7 @@ class S3DISDataset(data.Dataset):
         test_area = 'Area_%d'%test_area
         train_inds =[]
         test_inds=[]
+        print('Filter train test')
         for i,room in enumerate(self.room_file_list):
             if test_area in room:
                 test_inds.append(i)

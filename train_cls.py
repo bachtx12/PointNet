@@ -36,7 +36,7 @@ def parse_args():
     parser.add_argument('--decay_step', type=int, default=20, help='decay step for ')
     parser.add_argument('--momentum_decay', type=float, default=0.5, help='momentum_decay decay of batchnorm')
     parser.add_argument('--manualSeed', type=int, default=None, help='random seed')
-    parser.add_argument('--data_aug', type=bool, default=True, metavar='N', help='Using data augmentation for training phase')
+    parser.add_argument('--data_aug', action='store_true', help='Using data augmentation for training phase')
     #parameter of pointnet
     return parser.parse_args()
 

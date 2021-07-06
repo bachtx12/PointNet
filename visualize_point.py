@@ -27,7 +27,7 @@ def parse_args():
     parser = argparse.ArgumentParser('Classification')
     parser.add_argument('--batch_size', type=int, default=1, help='batch size in training [default: 32]')
     parser.add_argument('--num_point', type=int, default=1024, help='Point Number [default: 1024]')
-    parser.add_argument('--feature_transform', type=bool, default=True, help='Using feature transform in pointnet')
+    parser.add_argument('--feature_transform',action='store_true', help='Using feature transform in pointnet')
     parser.add_argument('--log_dir', type=str, default=None, help='experiment root')
     parser.add_argument('--model_path', type=str, required=True, help='model pre-trained')
     parser.add_argument('--test_class', type=str, default='all', help='class visualize')
