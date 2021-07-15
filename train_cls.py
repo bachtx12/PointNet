@@ -37,6 +37,7 @@ def parse_args():
     parser.add_argument('--momentum_decay', type=float, default=0.5, help='momentum_decay decay of batchnorm')
     parser.add_argument('--manualSeed', type=int, default=None, help='random seed')
     parser.add_argument('--data_aug', action='store_true', help='Using data augmentation for training phase')
+    parser.add_argument('--weight_decay', action='store_true', help='Using data augmentation for training phase')
     #parameter of pointnet
     return parser.parse_args()
 
@@ -67,7 +68,7 @@ def train():
             split='test',
             data_augmentation=False        
             )
-    elif args.dataset_type == 'modelnet40_10':
+    elif args.dataset_type == 'modelnet40_10' or args.dataset_type == 'modelnet40_5' or args.dataset_type == 'modelnet40_20' or args.dataset_type == 'modelnet40_50':
         dataset = ModelNetDataset(
             root=args.dataset_path,
             npoints=args.num_point,
@@ -160,12 +161,17 @@ def train():
 
     classifier = PointNet(3, num_classes)
     classifier.apply(init_weights)
-    classifier.stn1.mlp2[-1].apply(init_zeros)
-    classifier.stn2.mlp2[-1].apply(init_zeros)
+    # classifier.stn1.mlp2[-1].apply(init_zeros)
+    # classifier.stn2.mlp2[-1].apply(init_zeros)
     if args.model_path != '':
         classifier = copy_parameters(classifier,torch.load(args.model_path))
     classifier.cuda()
-    optimizer = optim.Adam(classifier.parameters(), lr=args.learning_rate, betas=(0.9, 0.999))
+    if args.weight_decay:
+        print('Using weight decay')
+        optimizer = optim.Adam(classifier.parameters(), lr=args.learning_rate, betas=(0.9, 0.999), weight_decay=1e-4)
+    else:
+        print('None using weight decay')
+        optimizer = optim.Adam(classifier.parameters(), lr=args.learning_rate, betas=(0.9, 0.999))
 
     MOMENTUM_ORIGINAL = 0.5
     MOMENTUM_DECAY = args.momentum_decay

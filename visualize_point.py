@@ -16,6 +16,7 @@ sys.path.append(os.path.join(BASE_DIR, 'data_utils'))
 from data_utils import rotate_point_cloud_by_angle
 from pc_utils import *
 from utils import copy_parameters
+from pointflow import write_file
 from ModelNetDataLoader import ModelNetDataset, ModelNetDataset_H5PY
 from ScanObjectNNDataLoader import ScanObjectNNDataset
 from pointnet_cls import PointNet_critical
@@ -73,7 +74,7 @@ def test():
     testdataloader = torch.utils.data.DataLoader(
             test_dataset,
             batch_size=args.batch_size,
-            shuffle=False,
+            shuffle=True,
             num_workers=4)
 
     print(len(test_dataset))
@@ -91,7 +92,9 @@ def test():
         classifier = classifier.eval()
         classifier.cuda()
         for i, data in tqdm(enumerate(testdataloader, 0)):
-            if i==0:
+            print('Check: ', i)
+            if i==0 :
+                print('Next')
                 continue
             points, target = data
             target = target[:, 0].cuda()
@@ -110,15 +113,20 @@ def test():
                 critical_points.append(orgin_data[int(index), :].tolist())
             critical_points = list(set([tuple(t) for t in critical_points]))
             # print(len(critical_index), len(critical_points))
-            print('global feat: ', global_feature)
+            # print('global feat: ', global_feature)
             img_filename = '%s/critical_points.jpg'%(args.log_dir) 
+            xml_filename = '%s/critical_points.xml'%(args.log_dir) 
+            write_file(np.squeeze( critical_points ), xml_filename)
             # output_img = point_cloud_three_views(np.squeeze( critical_points ))
+            # print(np.squeeze( critical_points ))
             output_img = draw_point_cloud(np.squeeze( critical_points ))
             imageio.imwrite(img_filename, output_img)
-            print('original: ', orgin_data)
-            img_filename = '%s/original.jpg'%(args.log_dir)
-            output_img = draw_point_cloud(np.squeeze( orgin_data ))
-            imageio.imwrite(img_filename, output_img)
+            # print('original: ', orgin_data)
+            # img_filename = '%s/original.jpg'%(args.log_dir)
+            # output_img = draw_point_cloud(np.squeeze( orgin_data ))
+            # imageio.imwrite(img_filename, output_img)
+            xml_filename = '%s/original.xml'%(args.log_dir)
+            write_file(np.squeeze( orgin_data ), xml_filename)
 
             max_position = [-1,-1,-1]
             min_position = [1, 1, 1]
@@ -126,19 +134,19 @@ def test():
             for point_index in range(len(orgin_data)):
                 max_position = np.maximum(max_position, orgin_data[point_index,:])
                 min_position = np.minimum(min_position, orgin_data[point_index,:])
-            print(max_position, min_position)
+            # print(max_position, min_position)
             upper_bound = orgin_data.copy().tolist()
             search_step = 0.02
             for x in np.linspace(min_position[0], max_position[0], int((max_position[0]-min_position[0])/search_step) +1):
                     for y in np.linspace(min_position[1], max_position[1], int((max_position[1]-min_position[1])//search_step) +1):
                         for z in np.linspace(min_position[2], max_position[2], int((max_position[2]-min_position[2])//search_step) +1):
                             upper_bound.append([x,y,z])
-            print(len(upper_bound))
+            # print(len(upper_bound))
             upper_torch = torch.from_numpy(np.asarray(upper_bound).astype(np.float32)).unsqueeze(0)
             upper_torch = upper_torch.cuda()
             _, _, upper_feat = classifier(upper_torch)
             upper_feat = upper_feat.squeeze().cpu().numpy().T
-            print(upper_feat.shape)
+            # print(upper_feat.shape)
 
             global_feature = global_feature.squeeze().cpu().numpy()
             upper = orgin_data.copy().tolist()
@@ -148,10 +156,12 @@ def test():
                     upper.append(upper_bound[i])
         
             upper = np.array(upper)
-            print('Upper: ',upper)
-            img_filename = '%s/upper_bound.jpg'%(args.log_dir)
-            output_img = draw_point_cloud(np.squeeze( np.asarray(upper) ))
-            imageio.imwrite(img_filename, output_img)
+            # print('Upper: ',upper)
+            # img_filename = '%s/upper_bound.jpg'%(args.log_dir)
+            # output_img = draw_point_cloud(np.squeeze( np.asarray(upper) ))
+            # imageio.imwrite(img_filename, output_img)
+            xml_filename = '%s/upper_bound.xml'%(args.log_dir)
+            write_file(np.squeeze( np.asarray(upper) ), xml_filename)
             break
 if __name__=='__main__':
     test()

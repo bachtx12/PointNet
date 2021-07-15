@@ -155,39 +155,40 @@ def train():
     linear_svm = svm.SVC(kernel='linear')
     linear_svm.fit(X_train, Y_train)
     Y_pred = linear_svm.predict(X_test)
-    print("\n", "Simple Linear SVC accuracy:", metrics.classification_report(Y_test, Y_pred), "\n")
-    print("\n", "Simple Linear SVC accuracy:", metrics.accuracy_score(Y_test, Y_pred), "\n")
+    linear_acc = metrics.accuracy_score(Y_test, Y_pred)
+    # print("\n", "Simple Linear SVC accuracy:", metrics.classification_report(Y_test, Y_pred), "\n")
+    print("\n", "Simple Linear SVC accuracy:", linear_acc, "\n")
     # np.savetxt('our.csv', metrics.confusion_matrix(Y_test, Y_pred, normalize='true'))
     # print("\n", "Simple Linear SVC accuracy:\n", metrics.confusion_matrix(Y_test, Y_pred, normalize='true'), "\n")
-    # rbf_svm = svm.SVC(kernel='rbf')
-    # rbf_svm.fit(X_train, Y_train)
-    # Y_pred = rbf_svm.predict(X_test)
-    # print("Simple RBF SVC accuracy:", metrics.accuracy_score(Y_test, Y_pred), "\n")
+    rbf_svm = svm.SVC(kernel='rbf')
+    rbf_svm.fit(X_train, Y_train)
+    Y_pred = rbf_svm.predict(X_test)
+    print("Simple RBF SVC accuracy:", metrics.accuracy_score(Y_test, Y_pred), "\n")
 
-    # ''' === Grid Search for SVM with RBF Kernel === '''
+    ''' === Grid Search for SVM with RBF Kernel === '''
 
-    # print("Now we use Grid Search to opt the parameters for SVM RBF kernel")
-    # # [1e-3, 5e-3, 1e-2, ..., 5e1]
-    # gamma_range = np.outer(np.logspace(-3, 1, 5), np.array([1, 5])).flatten()
-    # # [1e-1, 5e-1, 1e0, ..., 5e1]
-    # C_range = np.outer(np.logspace(-1, 1, 3), np.array([1, 5])).flatten()
-    # parameters = {'kernel': ['rbf'], 'C': C_range, 'gamma': gamma_range}
+    print("Now we use Grid Search to opt the parameters for SVM RBF kernel")
+    # [1e-3, 5e-3, 1e-2, ..., 5e1]
+    gamma_range = np.outer(np.logspace(-4, 1, 6), np.array([1])).flatten()
+    # [1e-1, 5e-1, 1e0, ..., 5e1]
+    C_range = np.outer(np.logspace(-1, 3, 5), np.array([1])).flatten()
+    parameters = {'kernel': ['rbf'], 'C': C_range, 'gamma': gamma_range}
 
-    # svm_clsf = svm.SVC()
-    # grid_clsf = GridSearchCV(estimator=svm_clsf, param_grid=parameters, n_jobs=8, verbose=1)
+    svm_clsf = svm.SVC()
+    grid_clsf = GridSearchCV(estimator=svm_clsf, param_grid=parameters, n_jobs=8, verbose=1)
 
-    # start_time = datetime.datetime.now()
-    # print('Start Param Searching at {}'.format(str(start_time)))
-    # grid_clsf.fit(X_train, Y_train)
-    # print('Elapsed time, param searching {}'.format(str(datetime.datetime.now() - start_time)))
-    # sorted(grid_clsf.cv_results_.keys())
+    start_time = datetime.datetime.now()
+    print('Start Param Searching at {}'.format(str(start_time)))
+    grid_clsf.fit(X_train, Y_train)
+    print('Elapsed time, param searching {}'.format(str(datetime.datetime.now() - start_time)))
+    sorted(grid_clsf.cv_results_.keys())
 
-    # # scores = grid_clsf.cv_results_['mean_test_score'].reshape(len(C_range), len(gamma_range))
-    # Y_pred = grid_clsf.best_estimator_.predict(X_test)
-    # print("\n\n")
-    # print("="*37)
-    # print("Best Params via Grid Search Cross Validation on Train Split is: ", grid_clsf.best_params_)
-    # print("Best Model's Accuracy on Test Dataset: {}".format(metrics.accuracy_score(Y_test, Y_pred)))
-
+    # scores = grid_clsf.cv_results_['mean_test_score'].reshape(len(C_range), len(gamma_range))
+    Y_pred = grid_clsf.best_estimator_.predict(X_test)
+    print("\n\n")
+    print("="*37)
+    print("Best Params via Grid Search Cross Validation on Train Split is: ", grid_clsf.best_params_)
+    print("Best Model's Accuracy on Test Dataset: {}".format(metrics.accuracy_score(Y_test, Y_pred)))
+    print("\n", "Simple Linear SVC accuracy:", linear_acc, "\n")
 if __name__=='__main__':
     train()
