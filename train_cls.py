@@ -161,8 +161,8 @@ def train():
 
     classifier = PointNet(3, num_classes)
     classifier.apply(init_weights)
-    # classifier.stn1.mlp2[-1].apply(init_zeros)
-    # classifier.stn2.mlp2[-1].apply(init_zeros)
+    classifier.stn1.mlp2[-1].apply(init_zeros)
+    classifier.stn2.mlp2[-1].apply(init_zeros)
     if args.model_path != '':
         classifier = copy_parameters(classifier,torch.load(args.model_path))
     classifier.cuda()
